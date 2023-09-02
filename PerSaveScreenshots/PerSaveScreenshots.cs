@@ -26,6 +26,7 @@ namespace PerSaveScreenshots
         private string screenshotBasePath;
         private string saveScreenshotPath;
         private string saveName;
+        private static Regex gameModeMatch = new Regex("(\\(SCIENCE_SANDBOX\\)$|\\(SANDBOX\\)$|\\(CAREER\\)$)");
         void Start()
         {
             ScreenShot stockScreenshot = GameObject.FindObjectOfType<ScreenShot>();
@@ -145,7 +146,7 @@ namespace PerSaveScreenshots
 
         private string ProcessSaveTitle(string title)
         {
-            Regex gameModeMatch = new Regex("(\\(SCIENCE_SANDBOX\\)$|\\(SANDBOX\\)$|\\(CAREER\\)$)");
+            
             return gameModeMatch.Replace(title, "").Trim();
         }
     }
