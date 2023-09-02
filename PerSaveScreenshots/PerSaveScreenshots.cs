@@ -130,7 +130,17 @@ namespace PerSaveScreenshots
 
         private string GetScreenshotPath()
         {
-            return saveScreenshotPath + "/screenshot" + i + ".png";
+            switch (HighLogic.LoadedScene)
+            {
+                case GameScenes.LOADING:
+                case GameScenes.MAINMENU:
+                case GameScenes.CREDITS:
+                case GameScenes.SETTINGS:
+                    return screenshotBasePath + "/screenshot" + i + ".png";
+                default:
+                    return saveScreenshotPath + "/screenshot" + i + ".png";
+            }
+            
         }
 
         private string ProcessSaveTitle(string title)
