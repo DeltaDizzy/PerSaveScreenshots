@@ -1,0 +1,1 @@
+﻿Move-Item -Path PerSaveScreenshots/bin/Release/PerSaveScreenshots.dll -Destination GameData/PerSaveScreenshots.dll
