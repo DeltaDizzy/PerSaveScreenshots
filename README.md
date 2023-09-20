@@ -14,3 +14,5 @@ To install, open the PerSaveScreenshots.zip file and merge the GameData folder i
 ## Changelog
 - v1.0 (September 1st, 2023)
   - Initial Release
+- v1.0.1 (September 19, 2023)
+  - Properly set UI hide flag 

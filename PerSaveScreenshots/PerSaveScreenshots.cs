@@ -1,11 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Security.AccessControl;
-using System.Text;
+﻿using System.IO;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using UnityEngine;
 
 namespace PerSaveScreenshots
@@ -29,8 +23,16 @@ namespace PerSaveScreenshots
         private static Regex gameModeMatch = new Regex("(\\(SCIENCE_SANDBOX\\)$|\\(SANDBOX\\)$|\\(CAREER\\)$)");
         void Start()
         {
+
             ScreenShot stockScreenshot = GameObject.FindObjectOfType<ScreenShot>();
             stockScreenshot.enabled = false;
+            //Log($"Stock Screenshot state is {stockScreenshot.enabled}");
+
+            if (HighLogic.LoadedSceneIsFlight)
+            {
+                allowUIHide = true;
+            }
+            else allowUIHide = false;
 
             screenshotBasePath = (Application.platform == RuntimePlatform.OSXPlayer) ? Path.Combine(Application.dataPath, "../../Screenshots") : Path.Combine(Application.dataPath, "../Screenshots");
             if (!Directory.Exists(screenshotBasePath))
@@ -44,14 +46,14 @@ namespace PerSaveScreenshots
             {
                 Directory.CreateDirectory(saveScreenshotPath);
             }
-
+            //Log($"{nameof(allowUIHide)} is {allowUIHide}");
             if (allowUIHide)
             {
                 GameEvents.onShowUI.Add(ShowUI);
                 GameEvents.onHideUI.Add(HideUI);
                 listenerAdded = true;
             }
-
+            //Log($"{nameof(listenerAdded)} is {listenerAdded}");
             if (useConfigSuperSize)
             {
                 superSize = GameSettings.SCREENSHOT_SUPERSIZE;
@@ -149,5 +151,7 @@ namespace PerSaveScreenshots
             
             return gameModeMatch.Replace(title, "").Trim();
         }
+
+        private void Log(string message) => Debug.Log($"[PerSaveScreenshots] {message}");
     }
 }
