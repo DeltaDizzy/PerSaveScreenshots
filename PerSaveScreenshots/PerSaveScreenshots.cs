@@ -16,7 +16,7 @@ namespace PerSaveScreenshots
         public Camera maincamera;
         private int screenshotIndex = 0;
         private bool uiHidden;
-        public bool allowUIHide = true;
+        public bool allowUIHide;
         public bool ScreenShotCameraMode;
         public bool useConfigSuperSize = true;
         public int superSize;
@@ -85,6 +85,12 @@ namespace PerSaveScreenshots
                     Directory.CreateDirectory(depthScreenshotPath);
                 }
             }
+
+            if (HighLogic.LoadedSceneIsFlight)
+            {
+                allowUIHide = true;
+            }
+            else allowUIHide = false;
 
             if (depthMode != null)
             {
