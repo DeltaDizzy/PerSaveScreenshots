@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Security.AccessControl;
-using System.Text;
+﻿using System.IO;
 using System.Text.RegularExpressions;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -32,10 +27,9 @@ namespace PerSaveScreenshots
         #nullable enable
         void Start()
         {
-            Debug.Log("[PerSaveScreenshots]: STARTED");
             ScreenShot stockScreenshot = GameObject.FindObjectOfType<ScreenShot>();
             stockScreenshot.enabled = false;
-            Debug.Log("[PerSaveScreenshots]: DISABLED STOCK");
+            Debug.Log("[PerSaveScreenshots]: Disabled Stock Screenshots");
             PerSaveDepthScreenshot? depthMode = null;
             try
             {
@@ -96,7 +90,7 @@ namespace PerSaveScreenshots
             {
                 depthMode.SetBasePath(depthScreenshotPath);
             }
-
+            //Log($"{nameof(allowUIHide)} is {allowUIHide}");
             if (allowUIHide)
             {
                 GameEvents.onShowUI.Add(ShowUI);
@@ -104,7 +98,7 @@ namespace PerSaveScreenshots
                 listenerAdded = true;
                 Debug.Log("[PerSaveScreenshots]: LISTENER ADDED");
             }
-
+            //Log($"{nameof(listenerAdded)} is {listenerAdded}");
             if (useConfigSuperSize)
             {
                 superSize = GameSettings.SCREENSHOT_SUPERSIZE;
@@ -208,5 +202,7 @@ namespace PerSaveScreenshots
             
             return gameModeMatch.Replace(title, "").Trim();
         }
+
+        private void Log(string message) => Debug.Log($"[PerSaveScreenshots] {message}");
     }
 }

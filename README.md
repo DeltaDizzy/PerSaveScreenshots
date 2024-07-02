@@ -16,7 +16,7 @@ Download the mod from [the releases page](https://github.com/DeltaDizzy/PerSaveS
 - v1.0 (September 1st, 2023)
   - Initial Release
 - v1.0.1 (September 19th, 2023)
-  - Fix UI toggle not working
+  - Properly set UI hide flag 
 - v1.1 (June 2nd, 2024)
   - Add Depth Mode
     - Depth Mode saves the [Depth buffer](https://en.wikipedia.org/wiki/Z-buffering) as an additional screenshot to [save name]/depth every time you take a screenshot while it is enabled. These depth buffer images can be used in imagine editing software to create a depth of field effect. They will likely need contrast stretching, but to preserve game performance, plugin complexity, and artistic freedom, the buffer images are provided raw and "as-is". Depth Mode does **not** currently support Screenshot Supersize, as all data manipulation and processing is done manually. Depth Mode is disabled by default, but can be enabled by using ModuleManager or editing GameData/PerSaveScreenshots/PerSaveScreenshots.cfg. Feedback on Depth Mode and sugegstions for improvement are welcome.
