@@ -1,6 +1,7 @@
 ﻿using System.IO;
 using System.Text.RegularExpressions;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace PerSaveScreenshots
 {
@@ -8,7 +9,7 @@ namespace PerSaveScreenshots
     public class PerSaveScreenshots : MonoBehaviour
     {
         public Camera maincamera;
-        private int i = 0;
+        private int screenshotIndex = 0;
         private bool uiHidden;
         public bool allowUIHide;
         public bool ScreenShotCameraMode;
@@ -19,14 +20,65 @@ namespace PerSaveScreenshots
         private Transform target;
         private string screenshotBasePath;
         private string saveScreenshotPath;
+        private string depthScreenshotPath;
         private string saveName;
         private static Regex gameModeMatch = new Regex("(\\(SCIENCE_SANDBOX\\)$|\\(SANDBOX\\)$|\\(CAREER\\)$)");
+
+        #nullable enable
         void Start()
         {
-
             ScreenShot stockScreenshot = GameObject.FindObjectOfType<ScreenShot>();
             stockScreenshot.enabled = false;
-            //Log($"Stock Screenshot state is {stockScreenshot.enabled}");
+            Debug.Log("[PerSaveScreenshots]: Disabled Stock Screenshots");
+            PerSaveDepthScreenshot? depthMode = null;
+            try
+            {
+                switch (HighLogic.LoadedScene)
+                {
+                    case GameScenes.SPACECENTER:
+                    case GameScenes.TRACKSTATION:
+                    case GameScenes.EDITOR:
+                    case GameScenes.FLIGHT:
+                        var configs = GameDatabase.Instance.GetConfigs("PerSaveScreenshots").FirstOrDefault();
+                        var depthEnabled = configs.config.GetValue("enableDepth").ToLower();
+                        if (depthEnabled == "true")
+                        {
+                            depthMode = Camera.main.gameObject.AddComponent<PerSaveDepthScreenshot>();
+                        }
+                        break;
+                    default:
+                        break;
+
+                }
+            }
+            catch (NullReferenceException nre)
+            {
+                Debug.LogException(nre);
+            }
+            finally
+            {
+                screenshotBasePath = (Application.platform == RuntimePlatform.OSXPlayer) ? Path.Combine(Application.dataPath, "../../Screenshots") : Path.Combine(Application.dataPath, "../Screenshots");
+                Debug.Log($"[PerSaveScreenshots]: Base path {screenshotBasePath}");
+                if (!Directory.Exists(screenshotBasePath))
+                {
+                    Directory.CreateDirectory(screenshotBasePath);
+                }
+
+                saveName = ProcessSaveTitle(HighLogic.CurrentGame.Title);
+                saveScreenshotPath = Path.Combine(screenshotBasePath, saveName);
+                Debug.Log($"[PerSaveScreenshots]: Save path {saveScreenshotPath}");
+                if (!Directory.Exists(saveScreenshotPath))
+                {
+                    Directory.CreateDirectory(saveScreenshotPath);
+                }
+
+                depthScreenshotPath = Path.Combine(saveScreenshotPath, "depth");
+                Debug.Log($"[PerSaveScreenshots]: Depth path {depthScreenshotPath}");
+                if (!Directory.Exists(depthScreenshotPath))
+                {
+                    Directory.CreateDirectory(depthScreenshotPath);
+                }
+            }
 
             if (HighLogic.LoadedSceneIsFlight)
             {
@@ -34,17 +86,9 @@ namespace PerSaveScreenshots
             }
             else allowUIHide = false;
 
-            screenshotBasePath = (Application.platform == RuntimePlatform.OSXPlayer) ? Path.Combine(Application.dataPath, "../../Screenshots") : Path.Combine(Application.dataPath, "../Screenshots");
-            if (!Directory.Exists(screenshotBasePath))
+            if (depthMode != null)
             {
-                Directory.CreateDirectory(screenshotBasePath);
-            }
-
-            saveName = ProcessSaveTitle(HighLogic.CurrentGame.Title);
-            saveScreenshotPath = Path.Combine(screenshotBasePath, saveName);
-            if (!Directory.Exists(saveScreenshotPath))
-            {
-                Directory.CreateDirectory(saveScreenshotPath);
+                depthMode.SetBasePath(depthScreenshotPath);
             }
             //Log($"{nameof(allowUIHide)} is {allowUIHide}");
             if (allowUIHide)
@@ -52,14 +96,13 @@ namespace PerSaveScreenshots
                 GameEvents.onShowUI.Add(ShowUI);
                 GameEvents.onHideUI.Add(HideUI);
                 listenerAdded = true;
+                Debug.Log("[PerSaveScreenshots]: LISTENER ADDED");
             }
             //Log($"{nameof(listenerAdded)} is {listenerAdded}");
             if (useConfigSuperSize)
             {
                 superSize = GameSettings.SCREENSHOT_SUPERSIZE;
             }
-
-            GameEvents.onGameUnpause.Add(OnGameUnpause);
         }
 
         private void OnDestroy()
@@ -72,18 +115,26 @@ namespace PerSaveScreenshots
             GameEvents.onGameUnpause.Remove(OnGameUnpause);
         }
 
-        private void Update()
+        void VisibleScreenshot()
         {
             if (GameSettings.TAKE_SCREENSHOT.GetKeyDown())
             {
-                i = 0;
+                screenshotIndex = 0;
                 while (File.Exists(GetScreenshotPath()))
                 {
-                    i++;
+                    screenshotIndex++;
                 }
+                Debug.Log($"Screenshot Path");
                 ScreenCapture.CaptureScreenshot(GetScreenshotPath(), superSize);
-                Debug.Log("SCREENSHOT!!");
+                Debug.Log($"SCREENSHOT!! at {GetScreenshotPath()}");
             }
+        }
+
+        private void Update()
+        {
+            maincamera = FlightCamera.fetch.mainCamera;
+            VisibleScreenshot();
+            //DepthScreenshot();
             if (!GameSettings.TOGGLE_UI.GetKeyDown() || !allowUIHide || HighLogic.LoadedScene != GameScenes.FLIGHT)
             {
                 return;
@@ -139,11 +190,11 @@ namespace PerSaveScreenshots
                 case GameScenes.MAINMENU:
                 case GameScenes.CREDITS:
                 case GameScenes.SETTINGS:
-                    return screenshotBasePath + "/screenshot" + i + ".png";
+                    return screenshotBasePath + "/screenshot" + screenshotIndex + ".png";
+                case GameScenes.FLIGHT:
                 default:
-                    return saveScreenshotPath + "/screenshot" + i + ".png";
-            }
-            
+                    return saveScreenshotPath + "/screenshot" + screenshotIndex + ".png";
+            } 
         }
 
         private string ProcessSaveTitle(string title)
